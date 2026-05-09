@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../widgets/step_progress_bar.dart';
 import '../providers/listing_draft_provider.dart';
-import '../../data/models/listing_models.dart';
+import '../../../../core/storage/local_storage_service.dart';
 
 class ListingFurnishedPage extends ConsumerStatefulWidget {
   const ListingFurnishedPage({super.key});
@@ -15,6 +15,12 @@ class ListingFurnishedPage extends ConsumerStatefulWidget {
 
 class _ListingFurnishedPageState extends ConsumerState<ListingFurnishedPage> {
   String? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = ref.read(listingDraftProvider).furnishedStatus;
+  }
 
   final List<String> _options = const [
     'Unfurnished',
@@ -31,7 +37,7 @@ class _ListingFurnishedPageState extends ConsumerState<ListingFurnishedPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing/step-3'),
         ),
         actions: [
           IconButton(
@@ -92,11 +98,13 @@ class _ListingFurnishedPageState extends ConsumerState<ListingFurnishedPage> {
   }
 
   Future<void> _submitAndNext() async {
-    final update = ListingUpdate();
-    await ref.read(listingDraftProvider.notifier).updateDraft(update, 5);
-    if (mounted) {
-      context.go('/create-listing/step-5');
-    }
+    await ref.read(listingDraftProvider.notifier).setFurnishedStatus(_selected);
+    // Furnished is UI-only — just advance step locally, no PATCH needed
+    final storage = ref.read(localStorageServiceProvider);
+    final id = ref.read(listingDraftProvider).listingId;
+    if (id != null) await storage.saveDraft(id, 5);
+    ref.read(listingDraftProvider.notifier);
+    if (mounted) context.go('/create-listing/step-5');
   }
 }
 

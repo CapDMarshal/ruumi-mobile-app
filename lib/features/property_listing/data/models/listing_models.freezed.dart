@@ -913,8 +913,10 @@ mixin _$ListingResponse {
   @JsonKey(name: 'property_type_id')
   String? get propertyTypeId => throw _privateConstructorUsedError;
   @JsonKey(name: 'space_type')
-  String? get spaceType => throw _privateConstructorUsedError;
+  String? get spaceType => throw _privateConstructorUsedError; // These fields come back as strings from the API
+  @_NumericStringConverter()
   double? get latitude => throw _privateConstructorUsedError;
+  @_NumericStringConverter()
   double? get longitude => throw _privateConstructorUsedError;
   @JsonKey(name: 'address_line_1')
   String? get addressLine1 => throw _privateConstructorUsedError;
@@ -924,12 +926,14 @@ mixin _$ListingResponse {
   @JsonKey(name: 'max_guests')
   int? get maxGuests => throw _privateConstructorUsedError;
   int? get bedrooms => throw _privateConstructorUsedError;
+  @_NumericStringConverter()
   double? get bathrooms => throw _privateConstructorUsedError;
   @JsonKey(name: 'property_size')
   int? get propertySize => throw _privateConstructorUsedError;
   String? get title => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
   @JsonKey(name: 'base_price')
+  @_NumericStringConverter()
   double? get basePrice => throw _privateConstructorUsedError;
   @JsonKey(name: 'booking_type')
   String? get bookingType => throw _privateConstructorUsedError;
@@ -957,18 +961,18 @@ abstract class $ListingResponseCopyWith<$Res> {
     String status,
     @JsonKey(name: 'property_type_id') String? propertyTypeId,
     @JsonKey(name: 'space_type') String? spaceType,
-    double? latitude,
-    double? longitude,
+    @_NumericStringConverter() double? latitude,
+    @_NumericStringConverter() double? longitude,
     @JsonKey(name: 'address_line_1') String? addressLine1,
     String? city,
     @JsonKey(name: 'postal_code') String? postalCode,
     @JsonKey(name: 'max_guests') int? maxGuests,
     int? bedrooms,
-    double? bathrooms,
+    @_NumericStringConverter() double? bathrooms,
     @JsonKey(name: 'property_size') int? propertySize,
     String? title,
     String? description,
-    @JsonKey(name: 'base_price') double? basePrice,
+    @JsonKey(name: 'base_price') @_NumericStringConverter() double? basePrice,
     @JsonKey(name: 'booking_type') String? bookingType,
   });
 }
@@ -1102,18 +1106,18 @@ abstract class _$$ListingResponseImplCopyWith<$Res>
     String status,
     @JsonKey(name: 'property_type_id') String? propertyTypeId,
     @JsonKey(name: 'space_type') String? spaceType,
-    double? latitude,
-    double? longitude,
+    @_NumericStringConverter() double? latitude,
+    @_NumericStringConverter() double? longitude,
     @JsonKey(name: 'address_line_1') String? addressLine1,
     String? city,
     @JsonKey(name: 'postal_code') String? postalCode,
     @JsonKey(name: 'max_guests') int? maxGuests,
     int? bedrooms,
-    double? bathrooms,
+    @_NumericStringConverter() double? bathrooms,
     @JsonKey(name: 'property_size') int? propertySize,
     String? title,
     String? description,
-    @JsonKey(name: 'base_price') double? basePrice,
+    @JsonKey(name: 'base_price') @_NumericStringConverter() double? basePrice,
     @JsonKey(name: 'booking_type') String? bookingType,
   });
 }
@@ -1239,18 +1243,18 @@ class _$ListingResponseImpl implements _ListingResponse {
     required this.status,
     @JsonKey(name: 'property_type_id') this.propertyTypeId,
     @JsonKey(name: 'space_type') this.spaceType,
-    this.latitude,
-    this.longitude,
+    @_NumericStringConverter() this.latitude,
+    @_NumericStringConverter() this.longitude,
     @JsonKey(name: 'address_line_1') this.addressLine1,
     this.city,
     @JsonKey(name: 'postal_code') this.postalCode,
     @JsonKey(name: 'max_guests') this.maxGuests,
     this.bedrooms,
-    this.bathrooms,
+    @_NumericStringConverter() this.bathrooms,
     @JsonKey(name: 'property_size') this.propertySize,
     this.title,
     this.description,
-    @JsonKey(name: 'base_price') this.basePrice,
+    @JsonKey(name: 'base_price') @_NumericStringConverter() this.basePrice,
     @JsonKey(name: 'booking_type') this.bookingType,
   });
 
@@ -1270,9 +1274,12 @@ class _$ListingResponseImpl implements _ListingResponse {
   @override
   @JsonKey(name: 'space_type')
   final String? spaceType;
+  // These fields come back as strings from the API
   @override
+  @_NumericStringConverter()
   final double? latitude;
   @override
+  @_NumericStringConverter()
   final double? longitude;
   @override
   @JsonKey(name: 'address_line_1')
@@ -1288,6 +1295,7 @@ class _$ListingResponseImpl implements _ListingResponse {
   @override
   final int? bedrooms;
   @override
+  @_NumericStringConverter()
   final double? bathrooms;
   @override
   @JsonKey(name: 'property_size')
@@ -1298,6 +1306,7 @@ class _$ListingResponseImpl implements _ListingResponse {
   final String? description;
   @override
   @JsonKey(name: 'base_price')
+  @_NumericStringConverter()
   final double? basePrice;
   @override
   @JsonKey(name: 'booking_type')
@@ -1394,18 +1403,20 @@ abstract class _ListingResponse implements ListingResponse {
     required final String status,
     @JsonKey(name: 'property_type_id') final String? propertyTypeId,
     @JsonKey(name: 'space_type') final String? spaceType,
-    final double? latitude,
-    final double? longitude,
+    @_NumericStringConverter() final double? latitude,
+    @_NumericStringConverter() final double? longitude,
     @JsonKey(name: 'address_line_1') final String? addressLine1,
     final String? city,
     @JsonKey(name: 'postal_code') final String? postalCode,
     @JsonKey(name: 'max_guests') final int? maxGuests,
     final int? bedrooms,
-    final double? bathrooms,
+    @_NumericStringConverter() final double? bathrooms,
     @JsonKey(name: 'property_size') final int? propertySize,
     final String? title,
     final String? description,
-    @JsonKey(name: 'base_price') final double? basePrice,
+    @JsonKey(name: 'base_price')
+    @_NumericStringConverter()
+    final double? basePrice,
     @JsonKey(name: 'booking_type') final String? bookingType,
   }) = _$ListingResponseImpl;
 
@@ -1424,10 +1435,12 @@ abstract class _ListingResponse implements ListingResponse {
   String? get propertyTypeId;
   @override
   @JsonKey(name: 'space_type')
-  String? get spaceType;
+  String? get spaceType; // These fields come back as strings from the API
   @override
+  @_NumericStringConverter()
   double? get latitude;
   @override
+  @_NumericStringConverter()
   double? get longitude;
   @override
   @JsonKey(name: 'address_line_1')
@@ -1443,6 +1456,7 @@ abstract class _ListingResponse implements ListingResponse {
   @override
   int? get bedrooms;
   @override
+  @_NumericStringConverter()
   double? get bathrooms;
   @override
   @JsonKey(name: 'property_size')
@@ -1453,6 +1467,7 @@ abstract class _ListingResponse implements ListingResponse {
   String? get description;
   @override
   @JsonKey(name: 'base_price')
+  @_NumericStringConverter()
   double? get basePrice;
   @override
   @JsonKey(name: 'booking_type')

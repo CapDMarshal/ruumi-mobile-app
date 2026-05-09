@@ -14,7 +14,20 @@ class ListingDescriptionPage extends ConsumerStatefulWidget {
 }
 
 class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage> {
-  final _descriptionController = TextEditingController();
+  late final TextEditingController _descriptionController;
+
+  @override
+  void initState() {
+    super.initState();
+    _descriptionController = TextEditingController(
+      text: ref.read(listingDraftProvider).listingData?.description ?? '',
+    );
+    if (ref.read(listingDraftProvider).listingData == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(listingDraftProvider.notifier).ensureListingDataLoaded();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -24,6 +37,15 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ListingDraftState>(listingDraftProvider, (prev, next) {
+      if (prev?.listingData == null && next.listingData != null) {
+        final desc = next.listingData!.description ?? '';
+        if (desc.isNotEmpty && _descriptionController.text.isEmpty) {
+          setState(() => _descriptionController.text = desc);
+        }
+      }
+    });
+
     final length = _descriptionController.text.length;
     final canProceed = length > 0;
 
@@ -34,7 +56,7 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing/step-7'),
         ),
         actions: [
           IconButton(
@@ -121,9 +143,15 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
 
   Future<void> _submitAndNext() async {
     final update = ListingUpdate(description: _descriptionController.text.trim());
-    await ref.read(listingDraftProvider.notifier).updateDraft(update, 9);
-    if (mounted) {
-      context.go('/create-listing/step-9');
+    try {
+      await ref.read(listingDraftProvider.notifier).updateDraft(update, 9);
+      if (mounted) context.go('/create-listing/step-9');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFD32F2F)),
+        );
+      }
     }
   }
 }

@@ -14,24 +14,53 @@ class ListingRoomDetailsPage extends ConsumerStatefulWidget {
 }
 
 class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage> {
-  int _guestCapacity = 0;
-  int _bedrooms = 0;
-  int _bathrooms = 0;
+  late int _guestCapacity;
+  late int _bedrooms;
+  late int _bathrooms;
   int _beds = 0;
   bool _petsAllowed = false;
 
-  final _indoorController = TextEditingController(text: '0');
-  final _outdoorController = TextEditingController(text: '0');
-  final _plotController = TextEditingController(text: '0');
+  late final TextEditingController _indoorController;
+  late final TextEditingController _outdoorController;
+  late final TextEditingController _plotController;
 
   bool _useSqft = true;
+  bool _dataLoaded = false;
 
   @override
   void initState() {
     super.initState();
+    final draftState = ref.read(listingDraftProvider);
+    _beds = draftState.beds;
+    _applyData(draftState.listingData);
+
     _indoorController.addListener(_onAreaChanged);
     _outdoorController.addListener(_onAreaChanged);
     _plotController.addListener(_onAreaChanged);
+
+    // Trigger fetch if listingData is missing (force-close / cold resume)
+    if (ref.read(listingDraftProvider).listingData == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(listingDraftProvider.notifier).ensureListingDataLoaded();
+      });
+    }
+  }
+
+  void _applyData(ListingResponse? data) {
+    _guestCapacity = data?.maxGuests ?? 0;
+    _bedrooms      = data?.bedrooms ?? 0;
+    _bathrooms     = data?.bathrooms?.toInt() ?? 0;
+    final savedSqm = data?.propertySize?.toDouble() ?? 0;
+    final display  = savedSqm > 0 ? (savedSqm / 0.092903).toStringAsFixed(0) : '0';
+    if (_dataLoaded) {
+      // Controllers already exist — just update text
+      _indoorController.text = display;
+    } else {
+      _indoorController  = TextEditingController(text: display);
+      _outdoorController = TextEditingController(text: '0');
+      _plotController    = TextEditingController(text: '0');
+      _dataLoaded = true;
+    }
   }
 
   @override
@@ -47,6 +76,16 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
 
   @override
   Widget build(BuildContext context) {
+    // React when listingData arrives from the async fetch
+    ref.listen<ListingDraftState>(listingDraftProvider, (prev, next) {
+      if (prev?.listingData == null && next.listingData != null) {
+        setState(() {
+          _applyData(next.listingData);
+          // beds is UI-only — keep the locally restored value, don't overwrite
+        });
+      }
+    });
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -54,7 +93,7 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing/step-2'),
         ),
         actions: [
           IconButton(
@@ -207,9 +246,13 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
   }
 
   bool get _canProceed {
+    // Allow proceeding if any area is filled OR any counter is set
     return _parseArea(_indoorController.text) > 0 ||
         _parseArea(_outdoorController.text) > 0 ||
-        _parseArea(_plotController.text) > 0;
+        _parseArea(_plotController.text) > 0 ||
+        _guestCapacity > 0 ||
+        _bedrooms > 0 ||
+        _bathrooms > 0;
   }
 
   double _parseArea(String raw) {
@@ -217,6 +260,9 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
   }
 
   Future<void> _submitAndNext() async {
+    // Save beds locally (no API field)
+    await ref.read(listingDraftProvider.notifier).setBeds(_beds);
+
     final propertySizeSqm = _sumAreasToSqm(
       _indoorController.text,
       _outdoorController.text,
@@ -229,9 +275,20 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
       propertySize: propertySizeSqm,
     );
 
-    await ref.read(listingDraftProvider.notifier).updateDraft(update, 4);
-    if (mounted) {
-      context.go('/create-listing/step-4');
+    try {
+      await ref.read(listingDraftProvider.notifier).updateDraft(update, 4);
+      if (mounted) {
+        context.go('/create-listing/step-4');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: const Color(0xFFD32F2F),
+          ),
+        );
+      }
     }
   }
 

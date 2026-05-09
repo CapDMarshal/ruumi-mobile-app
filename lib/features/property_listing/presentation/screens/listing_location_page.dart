@@ -1,33 +1,54 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 import '../widgets/step_progress_bar.dart';
+import '../providers/listing_draft_provider.dart';
+import '../../data/models/listing_models.dart';
 
-class ListingLocationPage extends StatefulWidget {
+class ListingLocationPage extends ConsumerStatefulWidget {
   const ListingLocationPage({super.key});
 
   @override
-  State<ListingLocationPage> createState() => _ListingLocationPageState();
+  ConsumerState<ListingLocationPage> createState() => _ListingLocationPageState();
 }
 
-class _ListingLocationPageState extends State<ListingLocationPage> {
+class _ListingLocationPageState extends ConsumerState<ListingLocationPage> {
   final MapController _mapController = MapController();
-  final _streetController = TextEditingController(text: '652 7th Avenue');
-  final _unitController = TextEditingController(text: 'Apt 172');
-  final _cityController = TextEditingController(text: 'Kuala Lumpur');
-  final _stateController = TextEditingController(text: 'Kuala Lumpur');
-  final _zipController = TextEditingController(text: '10001');
+  late final TextEditingController _streetController;
+  late final TextEditingController _unitController;
+  late final TextEditingController _cityController;
+  late final TextEditingController _stateController;
+  late final TextEditingController _zipController;
 
   String _region = 'Malaysia';
   LatLng _selectedPoint = const LatLng(3.1390, 101.6869);
   String _displayAddress =
       'No. 8, Jalan Kerinchi, Bangsar South, 59200 Kuala Lumpur, Malaysia';
   bool _isFetchingAddress = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-populate from saved API data
+    final data = ref.read(listingDraftProvider).listingData;
+    _streetController = TextEditingController(text: data?.addressLine1 ?? '');
+    _unitController   = TextEditingController(text: '');
+    _cityController   = TextEditingController(text: data?.city ?? '');
+    _stateController  = TextEditingController(text: '');
+    _zipController    = TextEditingController(text: data?.postalCode ?? '');
+
+    if (data?.latitude != null && data?.longitude != null) {
+      _selectedPoint = LatLng(data!.latitude!, data.longitude!);
+      _displayAddress = [data.addressLine1, data.city, data.postalCode]
+          .where((s) => s != null && s.isNotEmpty)
+          .join(', ');
+    }
+  }
 
   @override
   void dispose() {
@@ -48,7 +69,7 @@ class _ListingLocationPageState extends State<ListingLocationPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing'),
         ),
         actions: [
           IconButton(
@@ -139,9 +160,7 @@ class _ListingLocationPageState extends State<ListingLocationPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: () {
-                    context.go('/create-listing/step-3');
-                  },
+                  onPressed: _submitAndNext,
                   child: const Text('Next'),
                 ),
               ),
@@ -150,6 +169,26 @@ class _ListingLocationPageState extends State<ListingLocationPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _submitAndNext() async {
+    final update = ListingUpdate(
+      latitude: _selectedPoint.latitude,
+      longitude: _selectedPoint.longitude,
+      addressLine1: _streetController.text.trim(),
+      city: _cityController.text.trim(),
+      postalCode: _zipController.text.trim(),
+    );
+    try {
+      await ref.read(listingDraftProvider.notifier).updateDraft(update, 3);
+      if (mounted) context.go('/create-listing/step-3');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFD32F2F)),
+        );
+      }
+    }
   }
 
   Future<void> _onMapTap(LatLng point) async {
@@ -274,7 +313,7 @@ class _ListingLocationPageState extends State<ListingLocationPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _region,
+                initialValue: _region,
                 decoration: _inputDecoration('Choose your region'),
                 items: const [
                   DropdownMenuItem(value: 'Malaysia', child: Text('Malaysia')),

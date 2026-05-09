@@ -24,6 +24,20 @@ class ListingRepository {
     return data.map((e) => PropertyTypeResponse.fromJson(e)).toList();
   }
 
+  /// Fetches all listings. Pass [hostId] to filter by host (My Listings screen).
+  Future<List<ListingResponse>> getListings({int? hostId, int limit = 100, int offset = 0}) async {
+    final response = await _dio.get(
+      '/listings/',
+      queryParameters: {
+        'limit': limit,
+        'offset': offset,
+        if (hostId != null) 'host_id': hostId,
+      },
+    );
+    final List<dynamic> data = response.data;
+    return data.map((e) => ListingResponse.fromJson(e)).toList();
+  }
+
   Future<ListingResponse> createListingDraft(ListingCreate data) async {
     final response = await _dio.post(
       '/listings/',
@@ -33,9 +47,14 @@ class ListingRepository {
   }
 
   Future<ListingResponse> updateListing(String id, ListingUpdate data) async {
+    // Strip null values — the PATCH endpoint uses partial updates and
+    // rejects fields that are explicitly null.
+    final payload = Map<String, dynamic>.fromEntries(
+      data.toJson().entries.where((e) => e.value != null),
+    );
     final response = await _dio.patch(
       '/listings/$id',
-      data: data.toJson(),
+      data: payload,
     );
     return ListingResponse.fromJson(response.data);
   }

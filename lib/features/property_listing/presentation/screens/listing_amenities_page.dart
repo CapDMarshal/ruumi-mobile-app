@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../widgets/step_progress_bar.dart';
 import '../providers/listing_draft_provider.dart';
-import '../../data/models/listing_models.dart';
+import '../../../../core/storage/local_storage_service.dart';
 
 class ListingAmenitiesPage extends ConsumerStatefulWidget {
   const ListingAmenitiesPage({super.key});
@@ -14,8 +14,14 @@ class ListingAmenitiesPage extends ConsumerStatefulWidget {
 }
 
 class _ListingAmenitiesPageState extends ConsumerState<ListingAmenitiesPage> {
-  final Set<String> _selected = {};
+  late final Set<String> _selected;
   final Map<String, bool> _expanded = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = Set.from(ref.read(listingDraftProvider).amenities);
+  }
 
   final Map<String, List<String>> _sections = const {
     'Essential Amenities': [
@@ -47,7 +53,7 @@ class _ListingAmenitiesPageState extends ConsumerState<ListingAmenitiesPage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing/step-4'),
         ),
         actions: [
           IconButton(
@@ -137,11 +143,11 @@ class _ListingAmenitiesPageState extends ConsumerState<ListingAmenitiesPage> {
   }
 
   Future<void> _submitAndNext() async {
-    final update = ListingUpdate();
-    await ref.read(listingDraftProvider.notifier).updateDraft(update, 6);
-    if (mounted) {
-      context.go('/create-listing/step-6');
-    }
+    await ref.read(listingDraftProvider.notifier).setAmenities(_selected.toList());
+    final storage = ref.read(localStorageServiceProvider);
+    final id = ref.read(listingDraftProvider).listingId;
+    if (id != null) await storage.saveDraft(id, 6);
+    if (mounted) context.go('/create-listing/step-6');
   }
 }
 

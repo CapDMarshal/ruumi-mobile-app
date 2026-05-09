@@ -14,9 +14,23 @@ class ListingPricePage extends ConsumerStatefulWidget {
 }
 
 class _ListingPricePageState extends ConsumerState<ListingPricePage> {
-  final _priceController = TextEditingController(text: '650');
+  late final TextEditingController _priceController;
   bool _flexibleEnabled = false;
   bool _showFlexibleInfo = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final saved = ref.read(listingDraftProvider).listingData?.basePrice;
+    _priceController = TextEditingController(
+      text: saved != null && saved > 0 ? saved.toStringAsFixed(0) : '650',
+    );
+    if (ref.read(listingDraftProvider).listingData == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(listingDraftProvider.notifier).ensureListingDataLoaded();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -26,6 +40,15 @@ class _ListingPricePageState extends ConsumerState<ListingPricePage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ListingDraftState>(listingDraftProvider, (prev, next) {
+      if (prev?.listingData == null && next.listingData != null) {
+        final price = next.listingData!.basePrice;
+        if (price != null && price > 0) {
+          setState(() => _priceController.text = price.toStringAsFixed(0));
+        }
+      }
+    });
+
     final basePrice = _parsePrice();
     final canProceed = basePrice > 0;
 
@@ -36,7 +59,7 @@ class _ListingPricePageState extends ConsumerState<ListingPricePage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing/step-9'),
         ),
         actions: [
           IconButton(
@@ -188,9 +211,15 @@ class _ListingPricePageState extends ConsumerState<ListingPricePage> {
   Future<void> _submitAndNext() async {
     final value = _parsePrice();
     final update = ListingUpdate(basePrice: value);
-    await ref.read(listingDraftProvider.notifier).updateDraft(update, 11);
-    if (mounted) {
-      context.go('/create-listing/step-11');
+    try {
+      await ref.read(listingDraftProvider.notifier).updateDraft(update, 11);
+      if (mounted) context.go('/create-listing/step-11');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFD32F2F)),
+        );
+      }
     }
   }
 

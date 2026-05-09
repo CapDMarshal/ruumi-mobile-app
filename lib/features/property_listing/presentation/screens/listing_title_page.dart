@@ -14,7 +14,20 @@ class ListingTitlePage extends ConsumerStatefulWidget {
 }
 
 class _ListingTitlePageState extends ConsumerState<ListingTitlePage> {
-  final _titleController = TextEditingController();
+  late final TextEditingController _titleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(
+      text: ref.read(listingDraftProvider).listingData?.title ?? '',
+    );
+    if (ref.read(listingDraftProvider).listingData == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(listingDraftProvider.notifier).ensureListingDataLoaded();
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -24,8 +37,17 @@ class _ListingTitlePageState extends ConsumerState<ListingTitlePage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<ListingDraftState>(listingDraftProvider, (prev, next) {
+      if (prev?.listingData == null && next.listingData != null) {
+        final title = next.listingData!.title ?? '';
+        if (title.isNotEmpty && _titleController.text.isEmpty) {
+          setState(() => _titleController.text = title);
+        }
+      }
+    });
+
     final titleLength = _titleController.text.length;
-    final canProceed = titleLength > 0;
+    final canProceed = titleLength >= 10;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -34,7 +56,7 @@ class _ListingTitlePageState extends ConsumerState<ListingTitlePage> {
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing/step-6'),
         ),
         actions: [
           IconButton(
@@ -75,6 +97,10 @@ class _ListingTitlePageState extends ConsumerState<ListingTitlePage> {
                       decoration: InputDecoration(
                         counterText: '$titleLength/32',
                         hintText: 'Apartment Syariah in Kuala Lumpur',
+                        helperText: titleLength > 0 && titleLength < 10
+                            ? 'Minimum 10 characters'
+                            : null,
+                        helperStyle: const TextStyle(color: Color(0xFFD32F2F)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -119,9 +145,20 @@ class _ListingTitlePageState extends ConsumerState<ListingTitlePage> {
 
   Future<void> _submitAndNext() async {
     final update = ListingUpdate(title: _titleController.text.trim());
-    await ref.read(listingDraftProvider.notifier).updateDraft(update, 8);
-    if (mounted) {
-      context.go('/create-listing/step-8');
+    try {
+      await ref.read(listingDraftProvider.notifier).updateDraft(update, 8);
+      if (mounted) {
+        context.go('/create-listing/step-8');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: const Color(0xFFD32F2F),
+          ),
+        );
+      }
     }
   }
 }

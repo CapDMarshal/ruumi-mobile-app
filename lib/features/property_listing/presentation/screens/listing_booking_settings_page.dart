@@ -17,7 +17,24 @@ class _ListingBookingSettingsPageState extends ConsumerState<ListingBookingSetti
   String? _selected;
 
   @override
+  void initState() {
+    super.initState();
+    _selected = ref.read(listingDraftProvider).listingData?.bookingType;
+    if (ref.read(listingDraftProvider).listingData == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(listingDraftProvider.notifier).ensureListingDataLoaded();
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    ref.listen<ListingDraftState>(listingDraftProvider, (prev, next) {
+      if (prev?.listingData == null && next.listingData != null) {
+        final bt = next.listingData!.bookingType;
+        if (bt != null && _selected == null) setState(() => _selected = bt);
+      }
+    });
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -25,7 +42,7 @@ class _ListingBookingSettingsPageState extends ConsumerState<ListingBookingSetti
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.pop(),
+          onPressed: () => context.go('/create-listing/step-8'),
         ),
         actions: [
           IconButton(
@@ -55,8 +72,8 @@ class _ListingBookingSettingsPageState extends ConsumerState<ListingBookingSetti
                 subtitle:
                     'Start by reviewing reservation requests,\nthen switch to Instant Book, so guests\ncan book automatically.',
                 icon: Icons.event_available_outlined,
-                selected: _selected == 'MANUAL',
-                onTap: () => setState(() => _selected = 'MANUAL'),
+                selected: _selected == 'REQUEST',
+                onTap: () => setState(() => _selected = 'REQUEST'),
               ),
               const SizedBox(height: 12),
               _BookingOptionCard(
@@ -94,9 +111,15 @@ class _ListingBookingSettingsPageState extends ConsumerState<ListingBookingSetti
 
   Future<void> _submitAndNext() async {
     final update = ListingUpdate(bookingType: _selected);
-    await ref.read(listingDraftProvider.notifier).updateDraft(update, 10);
-    if (mounted) {
-      context.go('/create-listing/step-10');
+    try {
+      await ref.read(listingDraftProvider.notifier).updateDraft(update, 10);
+      if (mounted) context.go('/create-listing/step-10');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFD32F2F)),
+        );
+      }
     }
   }
 }

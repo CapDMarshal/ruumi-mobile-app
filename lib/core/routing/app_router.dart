@@ -17,6 +17,7 @@ import '../../features/property_listing/presentation/screens/listing_description
 import '../../features/property_listing/presentation/screens/listing_booking_settings_page.dart';
 import '../../features/property_listing/presentation/screens/listing_price_page.dart';
 import '../../features/property_listing/presentation/screens/listing_discount_page.dart';
+import '../../features/property_listing/presentation/screens/listing_review_page.dart';
 
 part 'app_router.g.dart';
 
@@ -83,7 +84,7 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: '/create-listing/step-12',
-        builder: (context, state) => const PlaceholderScreen(title: 'Step 12: Review & Publish'),
+        builder: (context, state) => const ListingReviewPage(),
       ),
     ],
   );
