@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../widgets/step_progress_bar.dart';
-import '../providers/listing_draft_provider.dart';
-import '../../../../core/storage/local_storage_service.dart';
+import '../../widgets/step_progress_bar.dart';
+import '../../providers/listing_draft_provider.dart';
+import '../../../../../core/storage/local_storage_service.dart';
 
 class ListingAmenitiesPage extends ConsumerStatefulWidget {
   const ListingAmenitiesPage({super.key});

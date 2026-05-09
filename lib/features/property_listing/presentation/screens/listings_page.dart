@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/listing_repository.dart';
 import '../../data/models/listing_models.dart';
 import '../providers/listing_draft_provider.dart';
-import 'listing_type_page.dart' show propertyImageFor;
+import 'listing_steps/listing_type_page.dart' show propertyImageFor;
 
 part 'listings_page.g.dart';
 

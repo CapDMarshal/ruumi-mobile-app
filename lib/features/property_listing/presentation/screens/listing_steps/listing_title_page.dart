@@ -2,25 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../widgets/step_progress_bar.dart';
-import '../providers/listing_draft_provider.dart';
-import '../../data/models/listing_models.dart';
+import '../../widgets/step_progress_bar.dart';
+import '../../providers/listing_draft_provider.dart';
+import '../../../data/models/listing_models.dart';
 
-class ListingDescriptionPage extends ConsumerStatefulWidget {
-  const ListingDescriptionPage({super.key});
+class ListingTitlePage extends ConsumerStatefulWidget {
+  const ListingTitlePage({super.key});
 
   @override
-  ConsumerState<ListingDescriptionPage> createState() => _ListingDescriptionPageState();
+  ConsumerState<ListingTitlePage> createState() => _ListingTitlePageState();
 }
 
-class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage> {
-  late final TextEditingController _descriptionController;
+class _ListingTitlePageState extends ConsumerState<ListingTitlePage> {
+  late final TextEditingController _titleController;
 
   @override
   void initState() {
     super.initState();
-    _descriptionController = TextEditingController(
-      text: ref.read(listingDraftProvider).listingData?.description ?? '',
+    _titleController = TextEditingController(
+      text: ref.read(listingDraftProvider).listingData?.title ?? '',
     );
     if (ref.read(listingDraftProvider).listingData == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -31,7 +31,7 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
 
   @override
   void dispose() {
-    _descriptionController.dispose();
+    _titleController.dispose();
     super.dispose();
   }
 
@@ -39,15 +39,15 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
   Widget build(BuildContext context) {
     ref.listen<ListingDraftState>(listingDraftProvider, (prev, next) {
       if (prev?.listingData == null && next.listingData != null) {
-        final desc = next.listingData!.description ?? '';
-        if (desc.isNotEmpty && _descriptionController.text.isEmpty) {
-          setState(() => _descriptionController.text = desc);
+        final title = next.listingData!.title ?? '';
+        if (title.isNotEmpty && _titleController.text.isEmpty) {
+          setState(() => _titleController.text = title);
         }
       }
     });
 
-    final length = _descriptionController.text.length;
-    final canProceed = length > 0;
+    final titleLength = _titleController.text.length;
+    final canProceed = titleLength >= 10;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -56,7 +56,7 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => context.go('/create-listing/step-7'),
+          onPressed: () => context.go('/create-listing/step-6'),
         ),
         actions: [
           IconButton(
@@ -81,24 +81,26 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Create your description for your\nproperty.',
+                      'Let\'s create a title for your\nproperty.',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Describe the unique qualities that set your\nlocation apart.',
+                      'Catchy titles are most effective. Enjoy the\nprocess, you can modify it later.',
                       style: TextStyle(color: Color(0xFF8A8A8A)),
                     ),
                     const SizedBox(height: 20),
                     TextField(
-                      controller: _descriptionController,
-                      maxLength: 500,
-                      maxLines: 10,
-                      minLines: 8,
+                      controller: _titleController,
+                      maxLength: 32,
                       onChanged: (_) => setState(() {}),
                       decoration: InputDecoration(
-                        counterText: '$length/500',
-                        hintText: 'Describe your property...',
+                        counterText: '$titleLength/32',
+                        hintText: 'Apartment Syariah in Kuala Lumpur',
+                        helperText: titleLength > 0 && titleLength < 10
+                            ? 'Minimum 10 characters'
+                            : null,
+                        helperStyle: const TextStyle(color: Color(0xFFD32F2F)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -113,7 +115,7 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const StepProgressBar(currentStep: 8, totalSteps: 12),
+                    const StepProgressBar(currentStep: 7, totalSteps: 12),
                     const SizedBox(height: 10),
                     SizedBox(
                       width: double.infinity,
@@ -142,14 +144,19 @@ class _ListingDescriptionPageState extends ConsumerState<ListingDescriptionPage>
   }
 
   Future<void> _submitAndNext() async {
-    final update = ListingUpdate(description: _descriptionController.text.trim());
+    final update = ListingUpdate(title: _titleController.text.trim());
     try {
-      await ref.read(listingDraftProvider.notifier).updateDraft(update, 9);
-      if (mounted) context.go('/create-listing/step-9');
+      await ref.read(listingDraftProvider.notifier).updateDraft(update, 8);
+      if (mounted) {
+        context.go('/create-listing/step-8');
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFD32F2F)),
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: const Color(0xFFD32F2F),
+          ),
         );
       }
     }

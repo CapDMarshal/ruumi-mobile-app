@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/models/listing_models.dart';
-import '../providers/listing_draft_provider.dart';
-import '../widgets/step_progress_bar.dart';
+import '../../../data/models/listing_models.dart';
+import '../../providers/listing_draft_provider.dart';
+import '../../widgets/step_progress_bar.dart';
 import 'listing_type_page.dart' show kKnownTypes, KnownType;
 
 class ListingReviewPage extends ConsumerStatefulWidget {

@@ -6,9 +6,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../widgets/step_progress_bar.dart';
-import '../providers/listing_draft_provider.dart';
-import '../../data/models/listing_models.dart';
+import '../../widgets/step_progress_bar.dart';
+import '../../providers/listing_draft_provider.dart';
+import '../../../data/models/listing_models.dart';
 
 class ListingLocationPage extends ConsumerStatefulWidget {
   const ListingLocationPage({super.key});

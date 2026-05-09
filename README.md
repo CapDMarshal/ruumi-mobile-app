@@ -59,7 +59,9 @@ lib/
  ┃   ┃ ┗ listing_repository.dart
  ┃   ┗ presentation/
  ┃     ┣ providers/   → ListingDraft notifier + listingsProvider (paginated)
- ┃     ┣ screens/     → 13 step screens + listings page + review/publish page
+ ┃     ┣ screens/
+ ┃     ┃ ┣ listing_steps/  → 13 step screens (intro → review/publish)
+ ┃     ┃ ┗ listings_page.dart
  ┃     ┗ widgets/     → StepProgressBar
  ┗ main.dart
 ```

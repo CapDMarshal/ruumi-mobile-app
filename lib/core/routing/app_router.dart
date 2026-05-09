@@ -5,19 +5,19 @@ import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../features/property_listing/presentation/screens/listings_page.dart';
-import '../../features/property_listing/presentation/screens/listing_intro_page.dart';
-import '../../features/property_listing/presentation/screens/listing_type_page.dart';
-import '../../features/property_listing/presentation/screens/listing_location_page.dart';
-import '../../features/property_listing/presentation/screens/listing_room_details_page.dart';
-import '../../features/property_listing/presentation/screens/listing_furnished_page.dart';
-import '../../features/property_listing/presentation/screens/listing_amenities_page.dart';
-import '../../features/property_listing/presentation/screens/listing_photos_page.dart';
-import '../../features/property_listing/presentation/screens/listing_title_page.dart';
-import '../../features/property_listing/presentation/screens/listing_description_page.dart';
-import '../../features/property_listing/presentation/screens/listing_booking_settings_page.dart';
-import '../../features/property_listing/presentation/screens/listing_price_page.dart';
-import '../../features/property_listing/presentation/screens/listing_discount_page.dart';
-import '../../features/property_listing/presentation/screens/listing_review_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_intro_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_type_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_location_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_room_details_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_furnished_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_amenities_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_photos_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_title_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_description_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_booking_settings_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_price_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_discount_page.dart';
+import '../../features/property_listing/presentation/screens/listing_steps/listing_review_page.dart';
 
 part 'app_router.g.dart';
 

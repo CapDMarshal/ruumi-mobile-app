@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../widgets/step_progress_bar.dart';
-import '../providers/listing_draft_provider.dart';
-import '../../../../core/storage/local_storage_service.dart';
+import '../../widgets/step_progress_bar.dart';
+import '../../providers/listing_draft_provider.dart';
+import '../../../../../core/storage/local_storage_service.dart';
 
 // Simulated asset path used for all "picked" photos
 const _kPhotoAsset = 'assets/images/property.jpeg';
