@@ -41,6 +41,10 @@ dependencies:
   go_router: any
   freezed_annotation: ^2.4.4
   json_annotation: ^4.9.0
+  google_fonts: ^6.2.1
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
@@ -69,9 +73,8 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/images/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
