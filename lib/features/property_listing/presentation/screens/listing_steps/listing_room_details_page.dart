@@ -51,14 +51,14 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
     _bedrooms      = data?.bedrooms ?? 0;
     _bathrooms     = data?.bathrooms?.toInt() ?? 0;
     final savedSqm = data?.propertySize?.toDouble() ?? 0;
-    final display  = savedSqm > 0 ? (savedSqm / 0.092903).toStringAsFixed(0) : '0';
+    final display  = savedSqm > 0 ? (savedSqm / 0.092903).toStringAsFixed(0) : '';
     if (_dataLoaded) {
       // Controllers already exist — just update text
       _indoorController.text = display;
     } else {
       _indoorController  = TextEditingController(text: display);
-      _outdoorController = TextEditingController(text: '0');
-      _plotController    = TextEditingController(text: '0');
+      _outdoorController = TextEditingController(text: '');
+      _plotController    = TextEditingController(text: '');
       _dataLoaded = true;
     }
   }
@@ -256,6 +256,7 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
   }
 
   double _parseArea(String raw) {
+    if (raw.trim().isEmpty) return 0;
     return double.tryParse(raw) ?? 0;
   }
 
@@ -415,7 +416,7 @@ class _AreaInput extends StatelessWidget {
                   controller: controller,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: '100',
+                    hintText: '0',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

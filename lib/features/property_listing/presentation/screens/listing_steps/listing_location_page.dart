@@ -139,7 +139,7 @@ class _ListingLocationPageState extends ConsumerState<ListingLocationPage> {
                       child: _ConfirmCard(
                         address: _displayAddress,
                         isLoading: _isFetchingAddress,
-                        onConfirm: () {},
+                        onConfirm: _submitAndNext,
                         onEdit: () => _showAddressSheet(context),
                       ),
                     ),
@@ -468,7 +468,7 @@ class _ConfirmCard extends StatelessWidget {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFF25C2A),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
