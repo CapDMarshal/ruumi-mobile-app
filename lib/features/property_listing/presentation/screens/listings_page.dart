@@ -107,10 +107,11 @@ class _ListingsPageState extends ConsumerState<ListingsPage> {
       if (!context.mounted) return;
 
       if (result == true) {
-        // Find the first draft and resume it
+        // Find the first draft and resume it — same logic as tapping the draft card
         final draft = listingsAsync.valueOrNull
-            ?.firstWhere((l) => l.status == 'DRAFT');
-        if (draft != null) {
+            ?.firstWhere((l) => l.status == 'DRAFT',
+                orElse: () => listingsAsync.valueOrNull!.first);
+        if (draft != null && draft.status == 'DRAFT') {
           final savedId = ref.read(listingDraftProvider).listingId;
           final savedStep = ref.read(listingDraftProvider).currentStep;
           final resumeStep = savedId == draft.id ? savedStep : 2;
