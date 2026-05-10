@@ -263,11 +263,17 @@ class _ListingsBody extends ConsumerWidget {
         ),
       ),
       data: (allListings) {
-        final listings = activeFilterId == null
+        final listings = (activeFilterId == null
             ? allListings
             : allListings
                 .where((l) => l.propertyTypeId == activeFilterId)
-                .toList();
+                .toList())
+          ..sort((a, b) {
+            // DRAFT first, then everything else
+            final aIsDraft = a.status == 'DRAFT' ? 0 : 1;
+            final bIsDraft = b.status == 'DRAFT' ? 0 : 1;
+            return aIsDraft.compareTo(bIsDraft);
+          });
 
         final hasNextPage = allListings.length == limit;
         final hasPrevPage = currentPage > 0;
