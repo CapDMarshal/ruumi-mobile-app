@@ -509,7 +509,7 @@ class _ListingCard extends ConsumerWidget {
                   if (listing.basePrice != null) ...[
                     const SizedBox(height: 6),
                     Text(
-                      'RM ${listing.basePrice!.toStringAsFixed(0)} / night',
+                      'RM ${listing.basePrice!.toStringAsFixed(0)} / Months',
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

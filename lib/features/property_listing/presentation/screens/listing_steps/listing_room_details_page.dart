@@ -26,6 +26,7 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
 
   bool _useSqft = true;
   bool _dataLoaded = false;
+  bool _areaTouched = false; // true once user edits any area field
 
   @override
   void initState() {
@@ -192,6 +193,22 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
                       onToggleUnit: _toggleUnit,
                     ),
                     const SizedBox(height: 16),
+                    if (_areaTouched && !_canProceed)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.info_outline,
+                                size: 14, color: Color(0xFFE65100)),
+                            SizedBox(width: 6),
+                            Text(
+                              'At least one area field should be filled.',
+                              style: TextStyle(
+                                  fontSize: 12, color: Color(0xFFE65100)),
+                            ),
+                          ],
+                        ),
+                      ),
                     const StepProgressBar(currentStep: 3, totalSteps: 12),
                     const SizedBox(height: 10),
                     SizedBox(
@@ -242,17 +259,16 @@ class _ListingRoomDetailsPageState extends ConsumerState<ListingRoomDetailsPage>
   }
 
   void _onAreaChanged() {
-    setState(() {});
+    setState(() {
+      _areaTouched = true;
+    });
   }
 
   bool get _canProceed {
-    // Allow proceeding if any area is filled OR any counter is set
+    // Require at least one area field to be filled with a value > 0
     return _parseArea(_indoorController.text) > 0 ||
         _parseArea(_outdoorController.text) > 0 ||
-        _parseArea(_plotController.text) > 0 ||
-        _guestCapacity > 0 ||
-        _bedrooms > 0 ||
-        _bathrooms > 0;
+        _parseArea(_plotController.text) > 0;
   }
 
   double _parseArea(String raw) {

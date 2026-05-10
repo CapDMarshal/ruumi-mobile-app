@@ -163,6 +163,7 @@ Tapping a published listing card loads its data into the draft provider via `loa
 
 ### Field-Level Rules
 - `latitude` and `longitude` are always sent together (enforced before sending).
+- the space wide (Indoor area, Outdoor area, Plot Size) must be > 0
 - `base_price` must be > 0 (validated in the form before submission).
 - `title` must be 10–32 characters (enforced with inline helper text and button guard).
 

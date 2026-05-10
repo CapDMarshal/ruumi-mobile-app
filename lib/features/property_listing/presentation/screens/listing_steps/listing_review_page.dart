@@ -103,7 +103,15 @@ class _ListingReviewPageState extends ConsumerState<ListingReviewPage> {
                     _ReviewSection(
                       title: 'Property Type',
                       onEdit: () => _editPropertyType(context, draft),
-                      child: _ReviewText(draft.propertyTypeLabel ?? '—'),
+                      child: _ReviewText(
+                        draft.propertyTypeLabel ??
+                            kKnownTypes
+                                .where((t) =>
+                                    t.id == draft.listingData?.propertyTypeId)
+                                .firstOrNull
+                                ?.name ??
+                            '—',
+                      ),
                     ),
 
                     // ── Location ───────────────────────────────────────────
@@ -272,38 +280,88 @@ class _ListingReviewPageState extends ConsumerState<ListingReviewPage> {
   // ── Inline edit sheets ────────────────────────────────────────────────────
 
   void _editPropertyType(BuildContext context, ListingDraftState draft) {
+    // Resolve initial selection — try label first, fall back to UUID match
     KnownType? selected = kKnownTypes
         .where((t) => t.name == draft.propertyTypeLabel)
         .firstOrNull;
+    selected ??= kKnownTypes
+        .where((t) => t.id == draft.listingData?.propertyTypeId)
+        .firstOrNull;
 
-    _showEditSheet(
+    showModalBottomSheet<void>(
       context: context,
-      title: 'Edit Property Type',
-      content: StatefulBuilder(builder: (ctx, setSt) {
-        return Column(
-          children: kKnownTypes.map((t) {
-            final isSelected = selected?.id == t.id;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: _OptionTile(
-                label: t.name,
-                selected: isSelected,
-                onTap: () => setSt(() => selected = t),
-              ),
-            );
-          }).toList(),
-        );
-      }),
-      canSave: () => selected != null,
-      onSave: () async {
-        if (selected == null) return;
-        await ref
-            .read(listingDraftProvider.notifier)
-            .setPropertyTypeLabel(selected!.name);
-        await ref.read(listingDraftProvider.notifier).updateDraft(
-          ListingUpdate(propertyTypeId: selected!.id),
-          12,
-        );
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (sheetCtx) {
+        return StatefulBuilder(builder: (ctx, setSt) {
+          return Padding(
+            padding: EdgeInsets.only(
+              left: 20, right: 20, top: 16,
+              bottom: 20 + MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Edit Property Type',
+                        style: TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w600)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ...kKnownTypes.map((t) {
+                  final isSelected = selected?.id == t.id;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: _OptionTile(
+                      label: t.name,
+                      selected: isSelected,
+                      onTap: () => setSt(() => selected = t),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFF25C2A),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
+                    ),
+                    onPressed: selected == null
+                        ? null
+                        : () async {
+                            Navigator.of(ctx).pop();
+                            await ref
+                                .read(listingDraftProvider.notifier)
+                                .setPropertyTypeLabel(selected!.name);
+                            await ref
+                                .read(listingDraftProvider.notifier)
+                                .updateDraft(
+                                  ListingUpdate(
+                                      propertyTypeId: selected!.id),
+                                  12,
+                                );
+                          },
+                    child: const Text('Save'),
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
       },
     );
   }

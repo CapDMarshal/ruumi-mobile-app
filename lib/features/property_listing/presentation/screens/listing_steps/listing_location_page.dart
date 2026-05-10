@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 import 'dart:convert';
 
 import '../../widgets/step_progress_bar.dart';
@@ -30,6 +31,7 @@ class _ListingLocationPageState extends ConsumerState<ListingLocationPage> {
   String _displayAddress =
       'No. 8, Jalan Kerinchi, Bangsar South, 59200 Kuala Lumpur, Malaysia';
   bool _isFetchingAddress = false;
+  bool _isLocating = false;
 
   @override
   void initState() {
@@ -114,17 +116,11 @@ class _ListingLocationPageState extends ConsumerState<ListingLocationPage> {
                               Marker(
                                 point: _selectedPoint,
                                 width: 48,
-                                height: 48,
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFF25C2A),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.apartment,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
+                                height: 56,
+                                alignment: Alignment.topCenter,
+                                child: Image.asset(
+                                  'assets/images/pinpoint.png',
+                                  fit: BoxFit.contain,
                                 ),
                               ),
                             ],
@@ -132,15 +128,89 @@ class _ListingLocationPageState extends ConsumerState<ListingLocationPage> {
                         ],
                       ),
                     ),
+                    // Confirm card — sits above the info bar
                     Positioned(
                       left: 12,
                       right: 12,
-                      bottom: 12,
+                      bottom: 62,
                       child: _ConfirmCard(
                         address: _displayAddress,
                         isLoading: _isFetchingAddress,
                         onConfirm: _submitAndNext,
                         onEdit: () => _showAddressSheet(context),
+                      ),
+                    ),
+                    // Info bar + location button — pinned to the very bottom
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      bottom: 12,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 9),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.08),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.touch_app_outlined,
+                                      size: 14, color: Color(0xFF8A8A8A)),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Tap the map to reposition the pin',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF555555)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: _isLocating ? null : _useMyLocation,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.12),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: _isLocating
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(10),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Color(0xFFF25C2A),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.my_location,
+                                      color: Color(0xFFF25C2A),
+                                      size: 20,
+                                    ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -188,6 +258,50 @@ class _ListingLocationPageState extends ConsumerState<ListingLocationPage> {
           SnackBar(content: Text(e.toString()), backgroundColor: const Color(0xFFD32F2F)),
         );
       }
+    }
+  }
+
+  Future<void> _useMyLocation() async {
+    setState(() => _isLocating = true);
+    try {
+      // Check / request permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever ||
+          permission == LocationPermission.denied) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Location permission denied.'),
+              backgroundColor: Color(0xFFD32F2F),
+            ),
+          );
+        }
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
+      );
+
+      final point = LatLng(position.latitude, position.longitude);
+      await _onMapTap(point);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not get location: $e'),
+            backgroundColor: const Color(0xFFD32F2F),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLocating = false);
     }
   }
 
