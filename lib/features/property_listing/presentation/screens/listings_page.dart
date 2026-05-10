@@ -10,6 +10,7 @@ import 'listing_steps/listing_type_page.dart' show propertyImageFor;
 
 part 'listings_page.g.dart';
 
+
 // ---------------------------------------------------------------------------
 // Property types provider (cached for the session)
 // ---------------------------------------------------------------------------
@@ -44,6 +45,99 @@ class _ListingsPageState extends ConsumerState<ListingsPage> {
         _currentPage = 0;
       });
 
+  Future<void> _onAddPressed(BuildContext context) async {
+    // Check if there are any drafts in the current loaded listings
+    final listingsAsync = ref.read(listingsProvider(limit: _pageSize, offset: _offset));
+    final hasDraft = listingsAsync.valueOrNull?.any((l) => l.status == 'DRAFT') ?? false;
+
+    if (hasDraft && context.mounted) {
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 52, height: 52,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF3E0),
+                  borderRadius: BorderRadius.circular(26),
+                ),
+                child: const Icon(Icons.edit_note_outlined,
+                    color: Color(0xFFE65100), size: 28),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'You have an unfinished listing',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'You have a draft listing in progress. Please consider to fill the draft first',
+                style: TextStyle(fontSize: 13, color: Color(0xFF8A8A8A)),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF25C2A),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: const Text('Continue draft'),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (!context.mounted) return;
+
+      if (result == true) {
+        // Find the first draft and resume it
+        final draft = listingsAsync.valueOrNull
+            ?.firstWhere((l) => l.status == 'DRAFT');
+        if (draft != null) {
+          final savedId = ref.read(listingDraftProvider).listingId;
+          final savedStep = ref.read(listingDraftProvider).currentStep;
+          final resumeStep = savedId == draft.id ? savedStep : 2;
+          await ref
+              .read(listingDraftProvider.notifier)
+              .resumeDraft(draft.id, resumeStep);
+          if (context.mounted) {
+            final route = resumeStep <= 1
+                ? '/create-listing'
+                : resumeStep > 11
+                    ? '/create-listing/step-12'
+                    : '/create-listing/step-$resumeStep';
+            context.go(route);
+          }
+        }
+        return;
+      }
+
+      // No draft or user dismissed — do nothing
+      return;
+    }
+
+    // No draft exists — start fresh
+    await ref.read(listingDraftProvider.notifier).startFresh();
+    if (context.mounted) context.go('/listing-intro');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,10 +148,7 @@ class _ListingsPageState extends ConsumerState<ListingsPage> {
             _ListingsHeader(
               activeFilterLabel: _activeFilterLabel,
               onFilter: _showFilterSheet,
-              onAdd: () async {
-                await ref.read(listingDraftProvider.notifier).startFresh();
-                if (context.mounted) context.go('/listing-intro');
-              },
+              onAdd: () => _onAddPressed(context),
             ),
             const SizedBox(height: 8),
             Expanded(
